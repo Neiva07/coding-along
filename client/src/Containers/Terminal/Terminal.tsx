@@ -9,12 +9,16 @@ const Terminal = () => {
     useEffect(() => {
         const term = new Term();
         term.open(container);
-        term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ')
+        term.write('code-along:\x1B[1;3;31m~Lucas-PC\x1B[0m $ ')
+        term.focus()
+        term.on("key", (key, ev) => {
+            term.write(key);
+        })
       }, [container])
 
       
         return (
-          <div className="App" ref={ref => {
+          <div className="terminal" ref={ref => {
               ref ? container = ref : null
           }}>
           </div>
