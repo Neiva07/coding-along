@@ -13,16 +13,20 @@ const Term = () => {
     let term : Terminal;
 
     let container!: HTMLDivElement;
-    
+
     Terminal.applyAddon(fullscreen);
     Terminal.applyAddon(fit);
     Terminal.applyAddon(search);
     Terminal.applyAddon(webLinks);
-    Terminal.applyAddon(winptyCompat)
+    Terminal.applyAddon(winptyCompat);
     
 
     useEffect(() => {
-        term = new Terminal({});
+        term = new Terminal({
+      cursorBlink: true,
+      rows: 15,
+      fontSize: 16,
+    });
         term.open(container)
         //@ts-ignore
         term.winptyCompatInit();
