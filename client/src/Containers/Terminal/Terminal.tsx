@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Terminal} from 'xterm';
+import { Terminal} from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit'
 import * as fullscreen from 'xterm/lib/addons/fullscreen/fullscreen'
 import * as search from 'xterm/lib/addons/search/search'
@@ -26,6 +26,8 @@ const Term = () => {
       cursorBlink: true,
       rows: 15,
       fontSize: 16,
+      cursorStyle: "bar",
+      rightClickSelectsWord: true
     });
         term.open(container)
         //@ts-ignore
