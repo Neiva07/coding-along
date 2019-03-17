@@ -71,41 +71,14 @@ const Term = (props : Props) => {
 
     }, [container])
 
-    // term.textarea.onkeydown = e => {
-    //     console.log(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey);
-    //     // ctrl + shift + metakey + +
-    //     if ((e.keyCode === 187 || e.keyCode === 61) && e.shiftKey && e.ctrlKey && e.altKey) {
-    //       term.setOption('fontSize', ++fontSize);
-    //       //@ts-ignore
-    //       term.fit();
-    //     }
-    //     // ctrl + shift + metakey + -
-    //     if ((e.keyCode === 189 || e.keyCode === 173) && e.shiftKey && e.ctrlKey && e.altKey) {
-    //       term.setOption('fontSize', --fontSize);
-    //       //@ts-ignore
-    //       term.fit();
-    //     }
-      //   // ctrl + shift + metakey + v
-      //   if (e.keyCode === 86 && e.shiftKey && e.ctrlKey && e.altKey) {
-      //     props.options.splitVertical && props.options.splitVertical();
-      //   }
-      //   // ctrl + shift + metakey + h
-      //   if (e.keyCode === 72 && e.shiftKey && e.ctrlKey && e.altKey) {
-      //     props.options.splitHorizontal && props.options.splitHorizontal();
-      //   }
-      //   // ctrl + shift + metakey + w
-      //   if (e.keyCode === 87 && e.shiftKey && e.ctrlKey && e.altKey) {
-      //     props.options.close && props.options.close();
-      //   }
-      // };
-    // }
+    
       
       
     
         return (
             <div className="terminal" 
             style={{
-                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'
+                top: 0, left: 0, width: '100%', height: '100%'
               }}
             ref={ref => {
                 ref ? container = ref : null

@@ -1,11 +1,11 @@
 import React, { Component, useRef, useEffect } from 'react';
-import Terminal from './Containers/Terminal/Terminal'
+import TerminalBox from './Containers/Terminal/TerminalBox'
 
 const App = () => {
 
     return (
       <div className="App">
-        <Terminal />
+        <TerminalBox />
       </div>
     );
   
