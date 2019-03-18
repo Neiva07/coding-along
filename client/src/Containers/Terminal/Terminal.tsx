@@ -19,7 +19,7 @@ const Term = (props : Props) => {
     let term : Terminal;
     let fontSize : number = 16;
     let container!: HTMLDivElement;
-    let pid: string;
+    let pid: number;
     let webSocket : WebSocket;
     const WEB_SOCKET_URL = `ws://${HOST}:${PORT}/terminals/`;
 
@@ -47,11 +47,22 @@ const Term = (props : Props) => {
         term.winptyCompatInit();
         //@ts-ignore
         term.fit();
+        //@ts-ignore
+        term.webLinksInit();
         term.write('code-along:\x1B[1;3;31m~Lucas-PC\x1B[0m $ ')
         term.focus()
-        term.on("key", (key, ev) => {
-          term.write(key);
+
+        term.on('resize', async (size:{cols: number, rows: number}) => {
+          const {cols, rows} = size;
+          const url = `http://${HOST}:${PORT}/terminals/?cols=${cols}&rows=${rows}`;
+          await axios({
+            method:'POST',
+            url
+          })
         })
+        console.log('ola')
+        connectToServer();
+        
         term.textarea.onkeydown = e => {
           console.log(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey);
           // ctrl + shift + metakey + +
@@ -67,35 +78,35 @@ const Term = (props : Props) => {
             term.fit();
           }
         }
-        term.on('resize', async (size:{cols: number, rows: number}) => {
-          const {cols, rows} = size;
-          const url = `http://${PORT}/terminals/?cols=${cols}&rows=${rows}`;
-          await axios({
-            method:'POST',
-            url
-          })
-        })
-        console.log('ola')
-        connectToServer();
+        term.on('key', (key, ev) => {
+          const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+      
+          if (ev.keyCode === 13) {
+            term.write('\r\n$ ');
+            
+          } else if (printable) {
+            term.write(key);
+          }
+        });
+        
+        
 
-    }, [container])
+    })
 
     const connectToServer = async () => {
-      const serverResponse:any = await axios({
+      const {data} = await axios({
         url : `http://${HOST}:${PORT}/terminals/?cols=${term.cols}&rows=${term.rows}`,
         method: 'POST'
       })
-      const processId:string = serverResponse.text();
-      pid = processId;
-      webSocket = new WebSocket(WEB_SOCKET_URL + processId);
+      pid = data;
+      webSocket = new WebSocket(WEB_SOCKET_URL + pid);
       webSocket.onopen = () => {
         console.log('óla')
         //@ts-ignore
         term.attach(webSocket);
       }
       webSocket.onclose = () => {
-        //@ts-ignore
-        term.dettach()
+        //disconnected
       }
       webSocket.onerror = () => {
         term.writeln('Ooops! Something went wrong! Try to refresh the page :)');

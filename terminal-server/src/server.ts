@@ -7,6 +7,7 @@ import { WithWebsocketMethod } from 'express-ws';
 const pty = require('node-pty')
 dotenv.config();
 const port = process.env.PORT;
+const host = process.env.HOST;
 const {app} = expressWs(express());
 
 const terminals : {[index: number] : ITerminal} = {},
@@ -35,18 +36,20 @@ app.post('/terminals', (req, res) => {
     })
     console.log(`created a terminal with PID: ${term.pid}`)
     terminals[term.pid] = term;
-    term.on('data', data=> {
+    logs[term.pid] = '';
+    term.on('data', data => {
         logs[term.pid] += data;
     })
     res.send(term.pid.toString());
     res.end();
-    
+  
 })
 
 app.post('/terminals/:pid/size', (req,res) => {
-    const {pid}     = req.params,
-        {cols,rows} = req.query,
-        term = terminals[pid];
+    const pid     = parseInt(req.params.pid),
+        cols      = parseInt(req.query.cols),
+        rows      = parseInt(req.query.rows),
+        term      = terminals[pid];
 
         term.resize(cols, rows);
         console.log('Resized terminal ' + pid + ' to ' + cols + ' cols and ' + rows + ' rows.');
@@ -56,16 +59,35 @@ app.post('/terminals/:pid/size', (req,res) => {
 app.ws('/tereminals/:pid', (ws, req) => {
     let term = terminals[parseInt(req.params.pid, 10)];
 
-    !term ? ws.send('Terminal was not created') : console.log(`Terminal connected on ${term.pid}`);
+    if(!term) 
+        ws.send('Terminal was not created')
+    
+    console.log(`Terminal connected on ${term.pid}`);
 
     ws.send(logs[term.pid]);
+    // function buffer(socket: WebSocket, timeout: number) {
+    //     let s = '';
+    //     let sender : NodeJS.Timeout | null = null;
+    //     return (data:string) => {
+    //       s += data;
+    //       if (!sender) {
+    //         sender = setTimeout(() => {
+    //           socket.send(s);
+    //           s = '';
+    //           sender = null;
+    //         }, timeout);
+    //       }
+    //     };
+    //   }
+    //   //@ts-ignore
+    //   const send = buffer(ws, 5);
 
-    term.on('data', data=> {
+    term.on('data', data => {
         try {
             ws.send(data);
         }
         catch{
-
+            console.log(data)
         }
     })
 
@@ -82,6 +104,6 @@ app.ws('/tereminals/:pid', (ws, req) => {
 
 })
 
-app.listen(port, () => {
+app.listen(4000, host, () => {
     console.log(`Server has been started on port ${port}`)
 })

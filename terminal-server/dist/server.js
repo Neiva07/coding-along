@@ -6,6 +6,7 @@ var dotenv = require("dotenv");
 var pty = require('node-pty');
 dotenv.config();
 var port = process.env.PORT;
+var host = process.env.HOST;
 var app = expressWs(express()).app;
 var terminals = {}, logs = {};
 app.get('/', function (req, res) { return res.send('Hello World'); });
@@ -27,6 +28,7 @@ app.post('/terminals', function (req, res) {
     });
     console.log("created a terminal with PID: " + term.pid);
     terminals[term.pid] = term;
+    logs[term.pid] = '';
     term.on('data', function (data) {
         logs[term.pid] += data;
     });
@@ -34,20 +36,23 @@ app.post('/terminals', function (req, res) {
     res.end();
 });
 app.post('/terminals/:pid/size', function (req, res) {
-    var pid = req.params.pid, _a = req.query, cols = _a.cols, rows = _a.rows, term = terminals[pid];
+    var pid = parseInt(req.params.pid), cols = parseInt(req.query.cols), rows = parseInt(req.query.rows), term = terminals[pid];
     term.resize(cols, rows);
     console.log('Resized terminal ' + pid + ' to ' + cols + ' cols and ' + rows + ' rows.');
     res.end();
 });
 app.ws('/tereminals/:pid', function (ws, req) {
     var term = terminals[parseInt(req.params.pid, 10)];
-    !term ? ws.send('Terminal was not created') : console.log("Terminal connected on " + term.pid);
+    if (!term)
+        ws.send('Terminal was not created');
+    console.log("Terminal connected on " + term.pid);
     ws.send(logs[term.pid]);
     term.on('data', function (data) {
         try {
             ws.send(data);
         }
         catch (_a) {
+            console.log(data);
         }
     });
     ws.on('message', function (msg) {
@@ -60,7 +65,7 @@ app.ws('/tereminals/:pid', function (ws, req) {
         delete logs[term.pid];
     });
 });
-app.listen(port, function () {
+app.listen(4000, host, function () {
     console.log("Server has been started on port " + port);
 });
 //# sourceMappingURL=server.js.map
