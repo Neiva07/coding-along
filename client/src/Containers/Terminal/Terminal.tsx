@@ -14,14 +14,23 @@ interface Props {
   }
 }
 
+type FixTerminal = Terminal & {
+  winptyCompatInit: Function;
+  fit: Function;
+  webLinksInit: Function;
+}
+
 
 const Term = (props : Props) => {
-    let term : Terminal;
-    let fontSize : number = 16;
+    // let term
+    //  : Terminal;
+    let fontSize  = 16;
     let container!: HTMLDivElement;
     let pid: number;
     let webSocket : WebSocket;
     const WEB_SOCKET_URL = `ws://${HOST}:${PORT}/terminals/`;
+    let failures : number = 0;
+    let interval : NodeJS.Timeout;
 
 
     Terminal.applyAddon(fullscreen);
@@ -31,23 +40,20 @@ const Term = (props : Props) => {
     Terminal.applyAddon(attach);
     Terminal.applyAddon(winptyCompat);
 
-    term = new Terminal({
+    const term = new Terminal({
       cursorBlink: true,
       rows: 15,
-      fontSize: 16,
+      fontSize,
       cursorStyle: "bar",
       rightClickSelectsWord: true
-    });
+    }) as FixTerminal;
     
 
     useEffect(() => {
         
         term.open(container)
-        //@ts-ignore
         term.winptyCompatInit();
-        //@ts-ignore
         term.fit();
-        //@ts-ignore
         term.webLinksInit();
         term.write('code-along:\x1B[1;3;31m~Lucas-PC\x1B[0m $ ')
         term.focus()
@@ -83,8 +89,8 @@ const Term = (props : Props) => {
       
           if (ev.keyCode === 13) {
             term.write('\r\n$ ');
-            
-          } else if (printable) {
+          }
+          else if (printable) {
             term.write(key);
           }
         });
@@ -94,11 +100,20 @@ const Term = (props : Props) => {
     })
 
     const connectToServer = async () => {
-      const {data} = await axios({
+      const response = await axios({
         url : `http://${HOST}:${PORT}/terminals/?cols=${term.cols}&rows=${term.rows}`,
         method: 'POST'
       })
-      pid = data;
+      if(response.statusText !== "OK"){
+          failures =+ 1;
+          if(failures === 2) {
+            term.writeln(`There is backend server found, but returns ${response.status} ${response.statusText}.`);
+          }
+          tryAgain();
+          return;
+      }
+
+      pid = response.data;
       webSocket = new WebSocket(WEB_SOCKET_URL + pid);
       webSocket.onopen = () => {
         console.log('óla')
@@ -107,11 +122,18 @@ const Term = (props : Props) => {
       }
       webSocket.onclose = () => {
         //disconnected
+        console.log('desconnected')
       }
       webSocket.onerror = () => {
         term.writeln('Ooops! Something went wrong! Try to refresh the page :)');
       }
 
+    }
+    const tryAgain = () => {
+      clearTimeout(interval);
+      interval = setTimeout(() => {
+        connectToServer();
+      }, 2000);
     }
       
       

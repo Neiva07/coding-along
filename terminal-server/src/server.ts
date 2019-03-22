@@ -2,21 +2,19 @@ import {Request, Response, NextFunction} from 'express'
 import express = require('express');
 import expressWs = require('express-ws');
 import dotenv = require('dotenv');
+import os = require('os');
 import { ITerminal } from 'node-pty/src/interfaces'
 import { WithWebsocketMethod } from 'express-ws';
 const pty = require('node-pty')
 dotenv.config();
-const port = process.env.PORT;
-const host = process.env.HOST;
 const {app} = expressWs(express());
 
 const terminals : {[index: number] : ITerminal} = {},
-      logs      : any                           = {}
+      logs      : {[index: number] : string}    = {}
 
-app.get('/', (req: Request,res: Response) => res.send('Hello World'));
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-    res .header('Access-Control-allow-Origin', '*')
+    res .header('Access-Control-Allow-Origin', '*')
         .header('Access-Control-Allow-Headers', 'X-Requested-With');
     
     next();
@@ -25,7 +23,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.post('/terminals', (req, res) => {
     const cols = parseInt(req.query.cols, 10);
     const rows = parseInt(req.query.rows, 10);
-    const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash'
+    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash'
 
     const term : ITerminal = pty.spawn(shell,[], {
         name: 'xterm-color',
@@ -46,9 +44,9 @@ app.post('/terminals', (req, res) => {
 })
 
 app.post('/terminals/:pid/size', (req,res) => {
-    const pid     = parseInt(req.params.pid),
-        cols      = parseInt(req.query.cols),
-        rows      = parseInt(req.query.rows),
+    const pid     = parseInt(req.params.pid, 10),
+        cols      = parseInt(req.query.cols, 10),
+        rows      = parseInt(req.query.rows, 10),
         term      = terminals[pid];
 
         term.resize(cols, rows);
@@ -59,28 +57,15 @@ app.post('/terminals/:pid/size', (req,res) => {
 app.ws('/tereminals/:pid', (ws, req) => {
     let term = terminals[parseInt(req.params.pid, 10)];
 
-    if(!term) 
+    if(!term) {
         ws.send('Terminal was not created')
+        return;
+    }
     
     console.log(`Terminal connected on ${term.pid}`);
 
     ws.send(logs[term.pid]);
-    // function buffer(socket: WebSocket, timeout: number) {
-    //     let s = '';
-    //     let sender : NodeJS.Timeout | null = null;
-    //     return (data:string) => {
-    //       s += data;
-    //       if (!sender) {
-    //         sender = setTimeout(() => {
-    //           socket.send(s);
-    //           s = '';
-    //           sender = null;
-    //         }, timeout);
-    //       }
-    //     };
-    //   }
-    //   //@ts-ignore
-    //   const send = buffer(ws, 5);
+    
 
     term.on('data', data => {
         try {
@@ -101,9 +86,11 @@ app.ws('/tereminals/:pid', (ws, req) => {
         delete terminals[term.pid];
         delete logs[term.pid]
     })
-
 })
 
-app.listen(4000, host, () => {
-    console.log(`Server has been started on port ${port}`)
+    const port = parseInt(process.env.PORT,10) || 4000,
+          host = os.platform() === 'win32' ? '127.0.0.1' : '0.0.0.0';
+
+app.listen(port, host, () => {
+    console.log('App listening to http://' + host + ':' + port);
 })
