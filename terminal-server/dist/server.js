@@ -9,8 +9,8 @@ dotenv.config();
 var app = expressWs(express()).app;
 var terminals = {}, logs = {};
 app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*')
-        .header('Access-Control-Allow-Headers', 'X-Requested-With');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With');
     next();
 });
 app.post('/terminals', function (req, res) {

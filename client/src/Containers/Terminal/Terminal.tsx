@@ -114,6 +114,7 @@ const Term = (props : Props) => {
       }
 
       pid = response.data;
+      debugger
       webSocket = new WebSocket(WEB_SOCKET_URL + pid);
       webSocket.onopen = () => {
         console.log('óla')

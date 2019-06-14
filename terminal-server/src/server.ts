@@ -14,8 +14,8 @@ const terminals : {[index: number] : ITerminal} = {},
 
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-    res .header('Access-Control-Allow-Origin', '*')
-        .header('Access-Control-Allow-Headers', 'X-Requested-With');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With');
     
     next();
 })
