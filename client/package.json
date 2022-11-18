@@ -10,7 +10,7 @@
     "axios": "^0.18.0",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
-    "react-scripts": "2.1.5",
+    "react-scripts": "5.0.1",
     "typescript": "3.3.3333",
     "xterm": "^3.11.0"
   },
